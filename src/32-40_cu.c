@@ -1,6 +1,6 @@
 #include "32-40_defs.h"
 
-unsigned int Arinc429_BuildWord(Arinc429IntWord_t word)
+unsigned int Arinc429_BuildWord(Arinc429Word_t word)
 {
     unsigned int result = 0;
 
@@ -37,9 +37,9 @@ unsigned int Arinc429_BuildWord(Arinc429IntWord_t word)
     return result;
 }
 
-Arinc429IntWord_t Arinc429_ParseWord(unsigned int rawWord)
+Arinc429Word_t Arinc429_ParseWord(unsigned int rawWord)
 {
-    Arinc429IntWord_t result;
+    Arinc429Word_t result;
 
     // LABEL -> биты 1-8
     result.label = (unsigned char)(rawWord & 0xFF);
@@ -66,7 +66,7 @@ Arinc429IntWord_t Arinc429_ParseWord(unsigned int rawWord)
     ch1->healthy = !in->fail_cu_ch1;
     ch2->healthy = !in->fail_cu_ch2;
 
-    Arinc429IntWord_t arinc_channel;
+    Arinc429Word_t arinc_channel;
     arinc_channel.label = LABEL_ACTIVE_CHANNEL;
     arinc_channel.sdi = 0;
     arinc_channel.ssm = 0;
@@ -85,6 +85,18 @@ Arinc429IntWord_t Arinc429_ParseWord(unsigned int rawWord)
     bus -> active_channel = Arinc429_BuildWord(arinc_channel);
 }
 
+void write_to_bus(Bus_t* bus,
+     Arinc429Word_t arinc_mode,
+     Arinc429Word_t arinc_angle,
+     Arinc429Word_t arinc_valve,
+    Arinc429Word_t arinc_centering)
+{
+    bus->mode = Arinc429_BuildWord(arinc_mode);
+    bus->target_angle = Arinc429_BuildWord(arinc_angle);
+    bus->valve_open = Arinc429_BuildWord(arinc_valve);
+    bus->centering_cmd = Arinc429_BuildWord(arinc_centering);
+}
+
 void nws_cu_step(
     Input_t* in,
     Bus_t* bus,
@@ -92,42 +104,62 @@ void nws_cu_step(
     CU_Channel_t* ch2
     )
     {
+    Arinc429Word_t arinc_mode;
+    arinc_mode.label = LABEL_MODE;
+    arinc_mode.sdi = 0;
+    arinc_mode.ssm = 0;
+    Arinc429Word_t arinc_angle;
+    arinc_angle.label = LABEL_MODE;
+    arinc_angle.sdi = 0;
+    arinc_angle.ssm = 0;
+    Arinc429Word_t arinc_valve;
+    arinc_valve.label = LABEL_VALVE;
+    arinc_valve.sdi = 0;
+    arinc_valve.ssm = 0;
     determine_active_channel(in, bus, ch1, ch2);
     if (!in->dc_bus_power)
     {
-        bus->mode = STATE_FREE_CASTORING;
-        bus->target_angle = 0.0f;
-        bus->valve_open = 0;
+        arinc_mode.data = STATE_FREE_CASTORING;
+        arinc_angle.data = 0.0f;
+        arinc_valve.data= 0;
+        write_to_bus(bus, arinc_mode, arinc_angle, arinc_valve);
         return;
     }
     if (in->hyd_pressure < HYD_MIN_PRESSURE)
     {
-        bus->mode = STATE_FREE_CASTORING;
-        bus->target_angle = 0.0f;
-        bus->valve_open = 0;
+        arinc_mode.data = STATE_FREE_CASTORING;
+        arinc_angle.data = 0.0f;
+        arinc_valve.data= 0;
+        write_to_bus(bus, arinc_mode, arinc_angle, arinc_valve);
         return;
     }
     if (in->aircraft_speed < 50.0f)
     {
-        bus->mode = STATE_TAXI_MODE;
-        bus->target_angle =
-        in->tiller_cmd * MAX_TILLER_ANGLE;
+        arinc_mode.data = STATE_TAXI_MODE;
+        arinc_valve.data =
+            in->tiller_cmd * MAX_TILLER_ANGLE;
     }
     else
     {
-        bus->mode = STATE_TAKEOFF_MODE;
-        bus->target_angle = in->rudder_pedal_cmd * MAX_PEDAL_ANGLE;
+        arinc_mode.data = STATE_TAKEOFF_MODE;
+        arinc_angle.data =
+            in->rudder_pedal_cmd * MAX_PEDAL_ANGLE;
     }
+    Arinc429Word_t arinc_centering;
+    arinc_centering.label = LABEL_CENTERING;
+    arinc_centering.sdi = 0;
+    arinc_centering.ssm = 0;
     if (in->gear_lever_up)
     {
-        bus->centering_cmd = 1;
-        bus->target_angle = 0.0f;
+        arinc_centering.data = 1;
+        arinc_angle.data = 0.0f;
     }
     else
     {
-        bus->centering_cmd = 0;
+        arinc_centering.data = 0;
     }
-    bus->valve_open = 1;
+    arinc_valve.data = 1;
+    write_to_bus(bus, arinc_mode, arinc_angle, arinc_valve, arinc_centering);
 }
 
 

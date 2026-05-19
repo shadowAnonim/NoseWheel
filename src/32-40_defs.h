@@ -29,7 +29,7 @@ typedef struct
     char sdi;
     int data;
     unsigned char ssm;
-} Arinc429IntWord_t;
+} Arinc429Word_t;
 
 
 typedef struct
@@ -91,7 +91,7 @@ typedef struct
 
     int active_channel;
 
-    Arinc429IntWord_t angle_word;
+    Arinc429Word_t angle_word;
 } Output_t;
 
 typedef struct
