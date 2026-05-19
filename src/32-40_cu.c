@@ -37,25 +37,6 @@ unsigned int Arinc429_BuildWord(Arinc429Word_t word)
     return result;
 }
 
-Arinc429Word_t Arinc429_ParseWord(unsigned int rawWord)
-{
-    Arinc429Word_t result;
-
-    // LABEL -> биты 1-8
-    result.label = (unsigned char)(rawWord & 0xFF);
-
-    // SDI -> биты 9-10
-    result.sdi = (unsigned char)((rawWord >> 8) & 0x03);
-
-    // DATA -> биты 11-29
-    result.data = (int)((rawWord >> 10) & 0x7FFFF);
-
-    // SSM -> биты 30-31
-    result.ssm = (unsigned char)((rawWord >> 29) & 0x03);
-
-    return result;
-}
-
  static void determine_active_channel(
     Input_t* in,
     Bus_t* bus,
@@ -125,7 +106,7 @@ void nws_cu_step(
     if (!in->dc_bus_power)
     {
         arinc_mode.data = STATE_FREE_CASTORING;
-        arinc_angle.data = 0.0f;
+        arinc_angle.data = 0;
         arinc_valve.data= 0;
         write_to_bus(bus, arinc_mode, arinc_angle, arinc_valve, arinc_centering);
         return;
@@ -133,7 +114,7 @@ void nws_cu_step(
     if (in->hyd_pressure < HYD_MIN_PRESSURE)
     {
         arinc_mode.data = STATE_FREE_CASTORING;
-        arinc_angle.data = 0.0f;
+        arinc_angle.data = 0;
         arinc_valve.data= 0;
         write_to_bus(bus, arinc_mode, arinc_angle, arinc_valve, arinc_centering);
         return;
@@ -141,19 +122,19 @@ void nws_cu_step(
     if (in->aircraft_speed < 50.0f)
     {
         arinc_mode.data = STATE_TAXI_MODE;
-        arinc_valve.data =
-            in->tiller_cmd * MAX_TILLER_ANGLE;
+        arinc_angle.data =
+            (int)(in->tiller_cmd * MAX_TILLER_ANGLE * 100);
     }
     else
     {
         arinc_mode.data = STATE_TAKEOFF_MODE;
         arinc_angle.data =
-            in->rudder_pedal_cmd * MAX_PEDAL_ANGLE;
+            (int)(in->rudder_pedal_cmd * MAX_PEDAL_ANGLE * 100);
     }
     if (in->gear_lever_up)
     {
         arinc_centering.data = 1;
-        arinc_angle.data = 0.0f;
+        arinc_angle.data = 0;
     }
     else
     {
