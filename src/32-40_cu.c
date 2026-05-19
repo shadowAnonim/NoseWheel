@@ -54,8 +54,7 @@ void nws_cu_step(
     else
     {
         bus->mode = STATE_TAKEOFF_MODE;
-        bus->target_angle =
-        in->rudder_pedal_cmd * MAX_PEDAL_ANGLE;
+        bus->target_angle = in->rudder_pedal_cmd * MAX_PEDAL_ANGLE;
     }
     if (in->gear_lever_up)
     {
@@ -68,3 +67,4 @@ void nws_cu_step(
     }
     bus->valve_open = 1;
 }
+

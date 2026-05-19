@@ -19,7 +19,9 @@
 
 typedef struct
 {
-    unsigned int data;
+    char label;
+    char sdi;
+    int data;
     unsigned char ssm;
 } Arinc429Word_t;
 
@@ -51,13 +53,13 @@ typedef struct
 
 typedef struct
 {
-    int mode;
-    float target_angle;
+    Arinc429Word_t mode;
+    Arinc429Word_t target_angle;
 
-    int valve_open;
-    int centering_cmd;
+    Arinc429Word_t valve_open;
+    Arinc429Word_t centering_cmd;
 
-    int active_channel;
+    Arinc429Word_t active_channel;
 } Bus_t;
 
 typedef struct
