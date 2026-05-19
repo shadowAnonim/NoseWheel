@@ -17,13 +17,28 @@
 
 #define INVALID_DATA 0xFFFFFFFFu
 
+#define LABEL_MODE 1
+#define LABEL_TARGET_ANGLE 2
+#define LABEL_VALVE 3
+#define LABEL_CENTERING 4
+#define LABEL_ACTIVE_CHANNEL 5
+
 typedef struct
 {
     char label;
     char sdi;
     int data;
     unsigned char ssm;
-} Arinc429Word_t;
+} Arinc429IntWord_t;
+
+
+typedef struct
+{
+    char label;
+    char sdi;
+    float data;
+    unsigned char ssm;
+} Arinc429FloatWord_t;
 
 typedef struct
 {
@@ -53,13 +68,13 @@ typedef struct
 
 typedef struct
 {
-    Arinc429Word_t mode;
-    Arinc429Word_t target_angle;
+    unsigned int mode;
+    unsigned int target_angle;
 
-    Arinc429Word_t valve_open;
-    Arinc429Word_t centering_cmd;
+    unsigned int valve_open;
+    unsigned int centering_cmd;
 
-    Arinc429Word_t active_channel;
+    unsigned int active_channel;
 } Bus_t;
 
 typedef struct
@@ -76,7 +91,7 @@ typedef struct
 
     int active_channel;
 
-    Arinc429Word_t angle_word;
+    Arinc429IntWord_t angle_word;
 } Output_t;
 
 typedef struct

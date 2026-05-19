@@ -81,39 +81,3 @@ void nws_phys_step(
     }
 }
 
-unsigned int Arinc429_BuildWord(Arinc429Word_t word)
-{
-    unsigned int result = 0;
-
-    // LABEL -> биты 1-8
-    result |= ((unsigned int)(word.label) & 0xFF);
-
-    // SDI -> биты 9-10
-    result |= (((unsigned int)(word.sdi) & 0x03) << 8);
-
-    // DATA -> биты 11-29
-    result |= (((unsigned int)(word.data) & 0x7FFFF) << 10);
-
-    // SSM -> биты 30-31
-    result |= (((unsigned int)(word.ssm) & 0x03) << 29);
-    
-    int temp = result;
-    int ones = 0;
-
-    for (int i = 0; i < 31; i++)
-    {
-        if (temp & (1u << i))
-        {
-            ones++;
-        }
-    }
-
-    // Если количество единиц чётное —
-    // ставим parity bit = 1
-    if ((ones % 2) == 0)
-    {
-        result |= (1u << 31);
-    }
-
-    return result;
-}
