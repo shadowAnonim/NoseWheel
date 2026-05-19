@@ -140,67 +140,54 @@ static void scenario_step(
 int main(void)
 {
     float sim_time;
-
     Input_t in;
     Output_t out;
+    FILE* log_file;
 
     sim_time = 0.0f;
 
-    printf(
-        "TIME   MODE  ANGLE   RATE   RETRACT  "
-        "CH  SSM  DATA\n"
-    );
+    // Открываем файл для записи лога
+    log_file = fopen(LOG_FILENAME, "w");
+    if (log_file == NULL)
+    {
+        printf("Ошибка: не удалось создать файл лога %s\n", LOG_FILENAME);
+        return 1;
+    }
+
+    // Заголовок в файл и в консоль
+    fprintf(log_file, "TIME   MODE  ANGLE   RATE   RETRACT  CH  SSM  DATA\n");
+    printf("TIME   MODE  ANGLE   RATE   RETRACT  CH  SSM  DATA\n");
 
     while (sim_time <= SIM_TIME)
     {
-        /*
-            Обновление сценария
-        */
+        // Обновление сценария
+        scenario_step(sim_time, &in);
 
-        scenario_step(
-            sim_time,
-            &in
-        );
+        // Один цикл модели
+        nws_manager_step(&in, &out);
 
-        /*
-            Один цикл модели
-        */
+        // Запись в файл через функцию
+        write_log(log_file, sim_time, &out);
 
-        nws_manager_step(
-            &in,
-            &out
-        );
-
-        /*
-            Вывод состояния
-            на каждом шаге
-        */
-
+        // Вывод в консоль
         printf(
-            "%6.2f  %d   %7.2f %7.2f    %d      "
-            "%d    %d   0x%08X\n",
-
+            "%6.2f  %d   %7.2f %7.2f    %d      %d    %d   0x%08X\n",
             sim_time,
-
             out.steering_mode,
-
             out.wheel_angle_deg,
             out.wheel_rate_deg_s,
-
             out.gear_retract_enable,
-
             out.active_channel,
-
             out.angle_word.ssm,
             out.angle_word.data
         );
 
-        /*
-            Следующий цикл
-        */
-
+        // Следующий цикл
         sim_time += DT;
     }
+
+    fclose(log_file);
+    printf("\nЛог сохранён в файл: %s\n", LOG_FILENAME);
 
     return 0;
 }

@@ -117,7 +117,7 @@ void nws_cu_step(
     
     int raw_angle;
     
-    if (in->aircraft_speed < 50.0f)
+    if (in->aircraft_speed < SPEED_THRESHOLD_TAKEOFF)
     {
         arinc_mode.data = STATE_TAXI_MODE;
         raw_angle = (int)(in->tiller_cmd * MAX_TILLER_ANGLE * 100);

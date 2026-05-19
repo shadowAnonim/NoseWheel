@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "32-40_defs.h"
+
 int read_scenario(
     FILE* file,
     Input_t* in
@@ -14,5 +15,25 @@ int read_scenario(
         &in->hyd_pressure,
         &in->gear_lever_up,
         &in->wow_nlg
+    );
+}
+
+void write_log(
+    FILE* file,
+    float time,
+    Output_t* out
+)
+{
+    fprintf(
+        file,
+        "%6.2f  %d   %7.2f %7.2f    %d      %d    %d   0x%08X\n",
+        time,
+        out->steering_mode,
+        out->wheel_angle_deg,
+        out->wheel_rate_deg_s,
+        out->gear_retract_enable,
+        out->active_channel,
+        out->angle_word.ssm,
+        out->angle_word.data
     );
 }

@@ -65,7 +65,7 @@ void nws_phys_step(
         
         // PI-регулятор
         float P = kp * error;
-        integral += error * DT;
+        nws_integrator(error, &integral, DT);
         integral = nws_limit(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
         float I = KI * integral;
         
@@ -96,7 +96,7 @@ void nws_phys_step(
         float aero_factor = 1.0f;
         if (mode == STATE_TAKEOFF_MODE && in->aircraft_speed > AERO_DEMPER_START_SPEED)
         {
-            aero_factor = 1.0f - (in->aircraft_speed - AERO_DEMPER_START_SPEED) / 200.0f;
+            aero_factor = 1.0f - (in->aircraft_speed - AERO_DEMPER_START_SPEED) / AERO_DEMPER_DENOMINATOR;
             aero_factor = nws_limit(aero_factor, AERO_DEMPER_MAX_FACTOR, 1.0f);
         }
         
@@ -113,12 +113,13 @@ void nws_phys_step(
         
         // Инерция колеса (фильтр)
         static float filtered_rate = 0.0f;
-        filtered_rate += (cmd_rate - filtered_rate) * WHEEL_INERTIA_FILTER * DT;
+        float delta = (cmd_rate - filtered_rate) * WHEEL_INERTIA_FILTER;
+        nws_integrator(delta, &filtered_rate, DT);
         rate = filtered_rate;
     }
     
     // Интегрирование угла
-    wheel_angle += rate * DT;
+    nws_integrator(rate, &wheel_angle, DT);
     
     // Ограничение угла по режиму
     if (mode == STATE_TAKEOFF_MODE)

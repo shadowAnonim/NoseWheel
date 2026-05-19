@@ -1,12 +1,18 @@
 #ifndef nws_DEFS_H
 #define nws_DEFS_H
 
+#include <stdio.h>
+
 #define DT 0.02f
 
 // Режимы работы
 #define STATE_FREE_CASTORING 0
 #define STATE_TAXI_MODE 1
 #define STATE_TAKEOFF_MODE 2
+
+// Пороги скорости
+#define SPEED_THRESHOLD_TAKEOFF 50.0f    // скорость перехода в режим взлёта
+#define AERO_DEMPER_DENOMINATOR 200.0f   // знаменатель для расчёта аэродинамического демпфера
 
 // Ограничения углов
 #define MAX_TILLER_ANGLE 90.0f
@@ -54,6 +60,9 @@
 
 // Допуск для уборки шасси
 #define GEAR_RETRACT_TOLERANCE 2.0f
+
+// Параметры логирования
+#define LOG_FILENAME "nws_sim.log"
 
 typedef struct
 {
@@ -131,5 +140,8 @@ void nws_phys_step(Input_t* in, Bus_t* bus, Output_t* out);
 float nws_limit(float value, float min, float max);
 float nws_abs(float v);
 float nws_integrator(float input, float* state, float dt);
+
+int read_scenario(FILE* file, Input_t* in);
+void write_log(FILE* file, float time, Output_t* out);
 
 #endif
