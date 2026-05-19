@@ -31,15 +31,6 @@ typedef struct
     unsigned char ssm;
 } Arinc429Word_t;
 
-
-typedef struct
-{
-    char label;
-    char sdi;
-    float data;
-    unsigned char ssm;
-} Arinc429FloatWord_t;
-
 typedef struct
 {
     int dc_bus_power;
