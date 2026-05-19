@@ -1,5 +1,4 @@
 #include "32-40_defs.h"
-#include <stdio.h>
 
 unsigned int Arinc429_BuildWord(Arinc429Word_t word)
 {
