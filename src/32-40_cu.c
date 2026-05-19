@@ -116,13 +116,18 @@ void nws_cu_step(
     arinc_valve.label = LABEL_VALVE;
     arinc_valve.sdi = 0;
     arinc_valve.ssm = 0;
+    Arinc429Word_t arinc_centering;
+    arinc_centering.label = LABEL_CENTERING;
+    arinc_centering.sdi = 0;
+    arinc_centering.ssm = 0;
+    arinc_centering.data = 0;
     determine_active_channel(in, bus, ch1, ch2);
     if (!in->dc_bus_power)
     {
         arinc_mode.data = STATE_FREE_CASTORING;
         arinc_angle.data = 0.0f;
         arinc_valve.data= 0;
-        write_to_bus(bus, arinc_mode, arinc_angle, arinc_valve);
+        write_to_bus(bus, arinc_mode, arinc_angle, arinc_valve, arinc_centering);
         return;
     }
     if (in->hyd_pressure < HYD_MIN_PRESSURE)
@@ -130,7 +135,7 @@ void nws_cu_step(
         arinc_mode.data = STATE_FREE_CASTORING;
         arinc_angle.data = 0.0f;
         arinc_valve.data= 0;
-        write_to_bus(bus, arinc_mode, arinc_angle, arinc_valve);
+        write_to_bus(bus, arinc_mode, arinc_angle, arinc_valve, arinc_centering);
         return;
     }
     if (in->aircraft_speed < 50.0f)
@@ -145,10 +150,6 @@ void nws_cu_step(
         arinc_angle.data =
             in->rudder_pedal_cmd * MAX_PEDAL_ANGLE;
     }
-    Arinc429Word_t arinc_centering;
-    arinc_centering.label = LABEL_CENTERING;
-    arinc_centering.sdi = 0;
-    arinc_centering.ssm = 0;
     if (in->gear_lever_up)
     {
         arinc_centering.data = 1;
