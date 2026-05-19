@@ -1,0 +1,35 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+
+            "command": "gcc",
+
+            "args": [
+                "-g",
+
+                "src/32-40_defs.h",
+                "src/32-40_cu.c",
+                "src/32-40_inout.c",
+                "src/32-40_lib.c",
+                "src/32-40_manager.c",
+                "src/32-40_phys.c",
+                "src/main.c",
+
+                "-Iinclude",
+
+                "-o",
+                "build/nws_sim.exe"
+            ],
+
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+
+            "problemMatcher": ["$gcc"]
+        }
+    ]
+}
