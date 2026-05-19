@@ -1,5 +1,5 @@
-#ifndef SUPK_DEFS_H
-#define SUPK_DEFS_H
+#ifndef nws_DEFS_H
+#define nws_DEFS_H
 
 #define DT 0.02f
 
@@ -83,33 +83,33 @@ typedef struct
     int state;
 } CU_Channel_t;
 
-void supk_manager_step(
+void nws_manager_step(
     Input_t* in,
     Output_t* out
 );
 
-void supk_cu_step(
+void nws_cu_step(
     Input_t* in,
     Bus_t* bus,
     CU_Channel_t* ch1,
     CU_Channel_t* ch2
 );
 
-void supk_phys_step(
+void nws_phys_step(
     Input_t* in,
     Bus_t* bus,
     Output_t* out
 );
 
-float supk_limit(
+float nws_limit(
     float value,
     float min,
     float max
 );
 
-float supk_abs(float v);
+float nws_abs(float v);
 
-float supk_integrator(
+float nws_integrator(
     float input,
     float* state,
     float dt

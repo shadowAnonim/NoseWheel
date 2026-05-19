@@ -1,5 +1,5 @@
 #include "32-40_defs.h"
-void supk_phys_step(
+void nws_phys_step(
     Input_t* in,
     Bus_t* bus,
     Output_t* out
@@ -22,14 +22,14 @@ void supk_phys_step(
         }
     }
     wheel_angle += rate * DT;
-    wheel_angle = supk_limit(
+    wheel_angle = nws_limit(
         wheel_angle,
         -95.0f,
         95.0f
     );
     out->wheel_angle_deg = wheel_angle;
     out->wheel_rate_deg_s = rate;
-    out->servo_current = supk_abs(rate) * 0.1f;
+    out->servo_current = nws_abs(rate) * 0.1f;
     if (in->fail_hydraulic_leak)
     {
         out->hydraulic_consumption = 0.0f;
@@ -37,9 +37,9 @@ void supk_phys_step(
     else
     {
         out->hydraulic_consumption =
-        supk_abs(rate) * 0.05f;
+        nws_abs(rate) * 0.05f;
     }
-    if (supk_abs(wheel_angle) <= 2.0f)
+    if (nws_abs(wheel_angle) <= 2.0f)
     {
         out->gear_retract_enable = 1;
     }

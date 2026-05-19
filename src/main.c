@@ -166,7 +166,7 @@ int main(void)
             Один цикл модели
         */
 
-        supk_manager_step(
+        nws_manager_step(
             &in,
             &out
         );

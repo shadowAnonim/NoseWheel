@@ -1,5 +1,5 @@
 #include "32-40_defs.h"
-float supk_abs(float v)
+float nws_abs(float v)
 {
     if (v < 0.0f)
     {
@@ -8,7 +8,7 @@ float supk_abs(float v)
     return v;
 }
 
-float supk_limit(
+float nws_limit(
     float value,
     float min,
     float max
@@ -25,7 +25,7 @@ float supk_limit(
         return value;
     }
 
-float supk_integrator(
+float nws_integrator(
     float input,
     float* state,
     float dt

@@ -23,7 +23,7 @@
     }
 }
 
-void supk_cu_step(
+void nws_cu_step(
     Input_t* in,
     Bus_t* bus,
     CU_Channel_t* ch1,
