@@ -20,9 +20,11 @@ void nws_phys_step(
 {
     Arinc429Word_t mode_word = Arinc429_ParseWord(bus->mode);
     Arinc429Word_t angle_word = Arinc429_ParseWord(bus->target_angle);
+    Arinc429Word_t valve_word = Arinc429_ParseWord(bus->valve_open);
     Arinc429Word_t centering_word = Arinc429_ParseWord(bus->centering_cmd);
     
     int mode = mode_word.data;
+    int valve_open = valve_word.data;
     
     // Восстанавливаем знак угла из SDI
     int target_angle_raw = angle_word.data;
@@ -41,8 +43,8 @@ void nws_phys_step(
     float cmd_rate;
     float rate = 0.0f;
     
-    // Режим свободного касторинга
-    if (mode == STATE_FREE_CASTORING)
+    // Режим свободного касторинга ИЛИ клапан закрыт
+    if (mode == STATE_FREE_CASTORING || valve_open == 0)
     {
         rate = 0.0f;
         servo_pos = 0.0f;
@@ -73,7 +75,7 @@ void nws_phys_step(
         float spool_cmd = P + I;
         spool_cmd = nws_limit(spool_cmd, -MAX_SERVO_CMD, MAX_SERVO_CMD);
         
-        // Отказ сервопривода
+        // Отказ сервопривода (заклинивание клапана)
         if (in->fail_servo_jam)
         {
             spool_cmd = 0.0f;
@@ -81,7 +83,7 @@ void nws_phys_step(
             servo_vel = 0.0f;
         }
         
-        // Динамика золотника (модель 2-го порядка)
+        // Динамика золотника
         float spool_accel = SERVO_NATURAL_FREQ * SERVO_NATURAL_FREQ * (spool_cmd - servo_pos) 
                           - 2.0f * SERVO_DAMPING * SERVO_NATURAL_FREQ * servo_vel;
         servo_vel += spool_accel * DT;
@@ -89,14 +91,14 @@ void nws_phys_step(
         servo_pos = nws_limit(servo_pos, -1.0f, 1.0f);
         
         // Фактор давления гидравлики
-        float pressure_factor = in->hyd_pressure / PRESSURE_NOMINAL;
+        float pressure_factor = in->hyd_pressure / HYD_NOMINAL_PRESSURE;
         pressure_factor = nws_limit(pressure_factor, 0.0f, 1.0f);
         
         // Аэродинамический демпфер
         float aero_factor = 1.0f;
-        if (mode == STATE_TAKEOFF_MODE && in->aircraft_speed > AERO_DEMPER_START_SPEED)
+        if (mode == STATE_TAKEOFF_MODE && in->aircraft_speed > SPEED_THRESHOLD_TAKEOFF)
         {
-            aero_factor = 1.0f - (in->aircraft_speed - AERO_DEMPER_START_SPEED) / AERO_DEMPER_DENOMINATOR;
+            aero_factor = 1.0f - (in->aircraft_speed - SPEED_THRESHOLD_TAKEOFF) / AERO_DEMPER_DENOMINATOR;
             aero_factor = nws_limit(aero_factor, AERO_DEMPER_MAX_FACTOR, 1.0f);
         }
         
@@ -107,11 +109,11 @@ void nws_phys_step(
             leak_factor = HYD_LEAK_FACTOR;
         }
         
-        // Итоговая команда скорости
+        // Скорость поворота колеса
         cmd_rate = servo_pos * MAX_WHEEL_RATE * pressure_factor * aero_factor * leak_factor;
         cmd_rate = nws_limit(cmd_rate, -MAX_WHEEL_RATE, MAX_WHEEL_RATE);
         
-        // Инерция колеса (фильтр)
+        // Фильтр инерции колеса
         static float filtered_rate = 0.0f;
         float delta = (cmd_rate - filtered_rate) * WHEEL_INERTIA_FILTER;
         nws_integrator(delta, &filtered_rate, DT);
@@ -134,25 +136,11 @@ void nws_phys_step(
     // Выходные данные
     out->wheel_angle_deg = wheel_angle;
     out->wheel_rate_deg_s = rate;
-    out->servo_current = nws_abs(servo_pos) * SERVO_CURRENT_FACTOR;
-    
-    // Расход гидравлики
-    if (in->fail_hydraulic_leak)
-    {
-        out->hydraulic_consumption = 0.0f;
-    }
-    else
-    {
-        out->hydraulic_consumption = nws_abs(servo_pos) * HYD_FLOW_FACTOR + HYD_FLOW_IDLE;
-    }
-    
-    // Возможность уборки шасси
     out->gear_retract_enable = (nws_abs(wheel_angle) <= GEAR_RETRACT_TOLERANCE) ? 1 : 0;
-    
     out->steering_mode = mode;
     out->active_channel = active_channel;
     
-    // ARINC слово угла
+    // ARINC слово угла (датчик с учётом питания)
     if (in->fail_angle_sensor || !in->sensor_power)
     {
         out->angle_word.data = INVALID_DATA;
@@ -160,10 +148,13 @@ void nws_phys_step(
     }
     else
     {
-        out->angle_word.data = (unsigned int)(nws_abs(wheel_angle) * 100.0f);
+        Arinc429Word_t arinc_wheel_angle;
+        arinc_wheel_angle.label = LABEL_WHEEL_ANGLE;
+        arinc_wheel_angle.sdi = 0;
+        arinc_wheel_angle.ssm = 0;
+        arinc_wheel_angle.data = (nws_abs(wheel_angle) * 100.0f);
+        out->angle_word.data = Arinc429_BuildWord(arinc_wheel_angle);
         out->angle_word.sdi = (wheel_angle < 0.0f) ? 1 : 0;
         out->angle_word.ssm = SSM_NORMAL;
     }
-    
-    out->cas_fault = (active_channel == 0) ? 1 : 0;
 }

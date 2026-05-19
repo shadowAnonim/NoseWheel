@@ -13,8 +13,7 @@ int read_scenario(
         &in->tiller_cmd,
         &in->rudder_pedal_cmd,
         &in->hyd_pressure,
-        &in->gear_lever_up,
-        &in->wow_nlg
+        &in->gear_lever_up
     );
 }
 

@@ -5,14 +5,13 @@
 
 #define DT 0.02f
 
-// Режимы работы
+// Режимы работы (State Machine)
 #define STATE_FREE_CASTORING 0
 #define STATE_TAXI_MODE 1
 #define STATE_TAKEOFF_MODE 2
 
 // Пороги скорости
-#define SPEED_THRESHOLD_TAKEOFF 50.0f    // скорость перехода в режим взлёта
-#define AERO_DEMPER_DENOMINATOR 200.0f   // знаменатель для расчёта аэродинамического демпфера
+#define SPEED_THRESHOLD_TAKEOFF 50.0f
 
 // Ограничения углов
 #define MAX_TILLER_ANGLE 90.0f
@@ -33,6 +32,7 @@
 #define LABEL_VALVE 3
 #define LABEL_CENTERING 4
 #define LABEL_ACTIVE_CHANNEL 5
+#define LABEL_WHEEL_ANGLE 6
 
 // Параметры PI-регулятора
 #define KP_TAXI 1.2f
@@ -41,27 +41,21 @@
 #define MAX_INTEGRAL 5.0f
 
 // Параметры гидравлического привода
-#define SERVO_NATURAL_FREQ 25.0f      // рад/сек
+#define SERVO_NATURAL_FREQ 25.0f
 #define SERVO_DAMPING 0.7f
-#define MAX_WHEEL_RATE 25.0f          // град/сек
+#define MAX_WHEEL_RATE 25.0f
 #define MAX_SERVO_CMD 1.0f
 
 // Коэффициенты влияния
-#define PRESSURE_NOMINAL 3000.0f
-#define AERO_DEMPER_START_SPEED 50.0f
+#define AERO_DEMPER_DENOMINATOR 200.0f
 #define AERO_DEMPER_MAX_FACTOR 0.2f
 #define HYD_LEAK_FACTOR 0.3f
 #define WHEEL_INERTIA_FILTER 15.0f
 
-// Расход гидравлики и ток
-#define SERVO_CURRENT_FACTOR 15.0f
-#define HYD_FLOW_IDLE 0.5f
-#define HYD_FLOW_FACTOR 2.0f
-
 // Допуск для уборки шасси
 #define GEAR_RETRACT_TOLERANCE 2.0f
 
-// Параметры логирования
+// Логирование
 #define LOG_FILENAME "nws_sim.log"
 
 typedef struct
@@ -72,65 +66,72 @@ typedef struct
     unsigned char ssm;
 } Arinc429Word_t;
 
+// Входные данные (от смежных систем и пульта)
 typedef struct
 {
+    // Электрика
     int dc_bus_power;
     int sensor_power;
-
-    float hyd_pressure;
-    int hyd_low_pressure;
     
+    // Гидравлика
+    float hyd_pressure;
+    
+    // Параметры полёта
     float aircraft_speed;
-
+    
+    // Команды с пульта
     float rudder_pedal_cmd;
     float tiller_cmd;
-
+    
+    // Сигналы от смежных систем
     int gear_lever_up;
-    int wow_nlg;
-
-    int gear_reset;
-
+    int gear_reset;          // Сигнал восстановления после отказа
+    
+    // Отказы (входные для тестирования)
     int fail_cu_ch1;
     int fail_cu_ch2;
-
     int fail_servo_jam;
     int fail_hydraulic_leak;
     int fail_angle_sensor;
 } Input_t;
 
+// Шина данных между CU и PHYS (ARINC429 слова)
 typedef struct
 {
     unsigned int mode;
     unsigned int target_angle;
-
-    unsigned int valve_open;
+    unsigned int valve_open;      // Команда на гидроклапан
     unsigned int centering_cmd;
-
     unsigned int active_channel;
 } Bus_t;
 
+// Выходные данные
 typedef struct
 {
     float wheel_angle_deg;
     float wheel_rate_deg_s;
-
-    float servo_current;
-    float hydraulic_consumption;
-
     int gear_retract_enable;
     int steering_mode;
-    int cas_fault;
-
     int active_channel;
-
     Arinc429Word_t angle_word;
 } Output_t;
 
+// Состояние каналов контроллера
 typedef struct
 {
     int healthy;
-    int state;
 } CU_Channel_t;
+
+// Структура для хранения точек сценария
+typedef struct
+{
+    float time;
+    float speed;
+    float tiller;
+    float pedal;
+    float hyd;
+    int gear_up;
+} ScenarioPoint_t;
 
 // Функции
 void nws_manager_step(Input_t* in, Output_t* out);
@@ -143,5 +144,7 @@ float nws_integrator(float input, float* state, float dt);
 
 int read_scenario(FILE* file, Input_t* in);
 void write_log(FILE* file, float time, Output_t* out);
+
+unsigned int Arinc429_BuildWord(Arinc429Word_t word);
 
 #endif
