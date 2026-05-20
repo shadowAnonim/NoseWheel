@@ -108,6 +108,13 @@ void nws_phys_step(
         {
             leak_factor = HYD_LEAK_FACTOR;
         }
+
+        if (in->gear_reset) {
+            wheel_angle = 0.0f;
+            integral = 0.0f;
+            servo_pos = 0.0f;
+            servo_vel = 0.0f;
+        }
         
         // Скорость поворота колеса
         cmd_rate = servo_pos * MAX_WHEEL_RATE * pressure_factor * aero_factor * leak_factor;
