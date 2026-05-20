@@ -69,25 +69,14 @@ typedef struct
 // Входные данные (от смежных систем и пульта)
 typedef struct
 {
-    // Электрика
     int dc_bus_power;
     int sensor_power;
-    
-    // Гидравлика
     float hyd_pressure;
-    
-    // Параметры полёта
     float aircraft_speed;
-    
-    // Команды с пульта
     float rudder_pedal_cmd;
     float tiller_cmd;
-    
-    // Сигналы от смежных систем
     int gear_lever_up;
-    int gear_reset;          // Сигнал восстановления после отказа
-    
-    // Отказы (входные для тестирования)
+    int gear_reset;
     int fail_cu_ch1;
     int fail_cu_ch2;
     int fail_servo_jam;
@@ -100,7 +89,7 @@ typedef struct
 {
     unsigned int mode;
     unsigned int target_angle;
-    unsigned int valve_open;      // Команда на гидроклапан
+    unsigned int valve_open;
     unsigned int centering_cmd;
     unsigned int active_channel;
 } Bus_t;
@@ -142,9 +131,10 @@ float nws_limit(float value, float min, float max);
 float nws_abs(float v);
 float nws_integrator(float input, float* state, float dt);
 
-int read_scenario(FILE* file, Input_t* in);
-void write_log(FILE* file, float time, Output_t* out);
-
 unsigned int Arinc429_BuildWord(Arinc429Word_t word);
+
+// Функции ввода/вывода
+int read_scenario(const char* filename, ScenarioPoint_t* scenario, int max_points);
+void write_log(const char* filename, float time, Output_t* out);
 
 #endif

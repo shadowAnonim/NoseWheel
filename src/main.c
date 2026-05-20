@@ -4,9 +4,11 @@
 #define SIM_TIME 160.0f
 #define MAX_SCENARIO_POINTS 100
 
-static void scenario_step(float time, Input_t* in, ScenarioPoint_t* scenario, int scenario_size)
+static ScenarioPoint_t scenario[MAX_SCENARIO_POINTS];
+static int scenario_size = 0;
+
+static void scenario_step(float time, Input_t* in)
 {
-    // Значения по умолчанию (не меняющиеся)
     static int initialized = 0;
     if (!initialized)
     {
@@ -40,13 +42,11 @@ static void scenario_step(float time, Input_t* in, ScenarioPoint_t* scenario, in
     if (ratio < 0.0f) ratio = 0.0f;
     if (ratio > 1.0f) ratio = 1.0f;
     
-    // Линейная интерполяция
     in->aircraft_speed = scenario[prev_idx].speed * (1.0f - ratio) + scenario[next_idx].speed * ratio;
     in->tiller_cmd = scenario[prev_idx].tiller * (1.0f - ratio) + scenario[next_idx].tiller * ratio;
     in->rudder_pedal_cmd = scenario[prev_idx].pedal * (1.0f - ratio) + scenario[next_idx].pedal * ratio;
     in->hyd_pressure = scenario[prev_idx].hyd * (1.0f - ratio) + scenario[next_idx].hyd * ratio;
     
-    // Дискретный сигнал - переключаем когда больше половины интервала
     if (ratio > 0.5f)
     {
         in->gear_lever_up = scenario[next_idx].gear_up;
@@ -81,70 +81,24 @@ int main(void)
     float sim_time = 0.0f;
     Input_t in;
     Output_t out;
-    FILE* scenario_file;
-    FILE* log_file;
-    ScenarioPoint_t scenario[MAX_SCENARIO_POINTS];
-    int scenario_size = 0;
-    char line[256];
     
-    // Открываем файл сценария
-    scenario_file = fopen("scenario.txt", "r");
-    if (scenario_file == NULL)
-    {
-        printf("Ошибка: не удалось открыть файл сценария scenario.txt\n");
-        return 1;
-    }
-    
-    // Пропускаем заголовки (строки начинающиеся с #)
-    while (fgets(line, sizeof(line), scenario_file))
-    {
-        if (line[0] != '#')
-        {
-            break;
-        }
-    }
-    
-    // Читаем сценарий
-    do
-    {
-        if (sscanf(line, "%f %f %f %f %f %d",
-            &scenario[scenario_size].time,
-            &scenario[scenario_size].speed,
-            &scenario[scenario_size].tiller,
-            &scenario[scenario_size].pedal,
-            &scenario[scenario_size].hyd,
-            &scenario[scenario_size].gear_up) == 6)
-        {
-            scenario_size++;
-        }
-    } while (fgets(line, sizeof(line), scenario_file) && scenario_size < MAX_SCENARIO_POINTS);
-    
-    fclose(scenario_file);
-    
+    // Загрузка сценария через inout
+    scenario_size = read_scenario("scenario.txt", scenario, MAX_SCENARIO_POINTS);
     if (scenario_size == 0)
     {
-        printf("Ошибка: файл сценария пуст или имеет неверный формат\n");
+        printf("Ошибка: не удалось загрузить сценарий\n");
         return 1;
     }
     
-    // Открываем файл для записи лога
-    log_file = fopen(LOG_FILENAME, "w");
-    if (log_file == NULL)
-    {
-        printf("Ошибка: не удалось создать файл лога %s\n", LOG_FILENAME);
-        return 1;
-    }
-    
-    // Заголовок лога
-    fprintf(log_file, "TIME   MODE  ANGLE   RATE   RETRACT  CH  SSM  DATA\n");
+    printf("Загружено %d точек сценария\n", scenario_size);
     printf("TIME   MODE  ANGLE   RATE   RETRACT  CH  SSM  DATA\n");
     
     while (sim_time <= SIM_TIME)
     {
-        scenario_step(sim_time, &in, scenario, scenario_size);
+        scenario_step(sim_time, &in);
         nws_manager_step(&in, &out);
         
-        write_log(log_file, sim_time, &out);
+        write_log(LOG_FILENAME, sim_time, &out);
         
         // Вывод в консоль (каждые 0.5 секунды)
         if ((int)(sim_time * 50) % 25 == 0)
@@ -157,7 +111,6 @@ int main(void)
         sim_time += DT;
     }
     
-    fclose(log_file);
     printf("\nЛог сохранён в файл: %s\n", LOG_FILENAME);
     return 0;
 }
