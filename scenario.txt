@@ -144,8 +144,17 @@
 154 10 0.5 0.5 0.0 0.0 2800 0
 155 10 0.5 0.5 0.0 0.0 3000 0
 
-# ========== PHASE 21: Final Neutral (155-160 sec) ==========
-# End of test, all inputs neutral
+# ========== PHASE 21: Return to Neutral (155-165 sec) ==========
+# Return tiller to center position
 # time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
 155 10 0.0 0.0 0.0 0.0 3000 0
 160 10 0.0 0.0 0.0 0.0 3000 0
+165 10 0.0 0.0 0.0 0.0 3000 0
+
+# ========== PHASE 22: Final Stabilization (165-180 sec) ==========
+# Allow system to fully stabilize at zero position
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+165 10 0.0 0.0 0.0 0.0 3000 0
+170 10 0.0 0.0 0.0 0.0 3000 0
+175 10 0.0 0.0 0.0 0.0 3000 0
+180 10 0.0 0.0 0.0 0.0 3000 0

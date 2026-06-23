@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "32-40_defs.h"
 
-#define SIM_TIME 160.0f
+#define SIM_TIME 180.0f
 #define MAX_SCENARIO_POINTS 100
 
 static ScenarioPoint_t scenario[MAX_SCENARIO_POINTS];
