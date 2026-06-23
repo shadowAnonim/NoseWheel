@@ -120,6 +120,7 @@ typedef struct
     float pedal;
     float hyd;
     int gear_up;
+    int fails;
 } ScenarioPoint_t;
 
 // Функции

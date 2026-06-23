@@ -26,13 +26,14 @@ int read_scenario(
             continue;
         }
         
-        if (sscanf(line, "%f %f %f %f %f %d",
+        if (sscanf(line, "%f %f %f %f %f %d %d",
             &scenario[count].time,
             &scenario[count].speed,
             &scenario[count].tiller,
             &scenario[count].pedal,
             &scenario[count].hyd,
-            &scenario[count].gear_up) == 6)
+            &scenario[count].gear_up,
+            &scenario[count].fails) == 7)
         {
             count++;
         }

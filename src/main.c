@@ -1,11 +1,20 @@
 #include <stdio.h>
 #include "32-40_defs.h"
 
-#define SIM_TIME 160.0f
+#define SIM_TIME 360.0f
 #define MAX_SCENARIO_POINTS 100
 
 static ScenarioPoint_t scenario[MAX_SCENARIO_POINTS];
 static int scenario_size = 0;
+
+void read_fails(int fails, Input_t* in)
+{
+    in->fail_cu_ch1 = (int)(fails & 0x1);
+    in->fail_cu_ch2 = (int)((fails >> 1) & 0x1);
+    in->fail_servo_jam = (int)((fails >> 2) & 0x1);
+    in->fail_hydraulic_leak = (int)((fails >> 3) & 0x1);
+    in->fail_angle_sensor = (int)((fails >> 4) & 0x1);
+}
 
 static void scenario_step(float time, Input_t* in)
 {
@@ -55,25 +64,8 @@ static void scenario_step(float time, Input_t* in)
     {
         in->gear_lever_up = scenario[prev_idx].gear_up;
     }
-    
-    // Отказы по времени
-    if (time >= 100.0f && time < 110.0f)
-    {
-        in->fail_angle_sensor = 1;
-    }
-    else
-    {
-        in->fail_angle_sensor = 0;
-    }
-    
-    if (time >= 110.0f)
-    {
-        in->fail_cu_ch1 = 1;
-    }
-    else
-    {
-        in->fail_cu_ch1 = 0;
-    }
+
+    read_fails(scenario[prev_idx].fails, in);
 }
 
 int main(void)
