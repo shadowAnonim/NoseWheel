@@ -42,6 +42,14 @@ void nws_phys_step(
     float error;
     float cmd_rate;
     float rate = 0.0f;
+
+    if (in->gear_reset) 
+    {
+        wheel_angle = 0.0f;
+        integral = 0.0f;
+        servo_pos = 0.0f;
+        servo_vel = 0.0f;
+    }
     
     // Режим свободного касторинга ИЛИ клапан закрыт
     if (mode == STATE_FREE_CASTORING || valve_open == 0)
@@ -107,13 +115,6 @@ void nws_phys_step(
         if (in->fail_hydraulic_leak)
         {
             leak_factor = HYD_LEAK_FACTOR;
-        }
-
-        if (in->gear_reset) {
-            wheel_angle = 0.0f;
-            integral = 0.0f;
-            servo_pos = 0.0f;
-            servo_vel = 0.0f;
         }
         
         // Скорость поворота колеса
