@@ -1,8 +1,6 @@
 #ifndef nws_DEFS_H
 #define nws_DEFS_H
 
-#include <stdio.h>
-
 #define DT 0.02f
 
 // Режимы работы (State Machine)
@@ -24,6 +22,7 @@
 // ARINC429
 #define SSM_NORMAL 0
 #define SSM_NO_COMPUTED_DATA 3
+#define SSM_DUAL_INPUT_ERROR 2
 #define INVALID_DATA 0xFFFFFFFFu
 
 // Метки ARINC429
@@ -58,6 +57,10 @@
 // Логирование
 #define LOG_FILENAME "nws_sim.log"
 
+// Параметры Dual Input
+#define DUAL_INPUT_THRESHOLD 0.1f
+#define DUAL_INPUT_LOCK_TIME 10.0f
+
 typedef struct
 {
     char label;
@@ -73,8 +76,10 @@ typedef struct
     int sensor_power;
     float hyd_pressure;
     float aircraft_speed;
-    float rudder_pedal_cmd;
-    float tiller_cmd;
+    float rudder_pedal_cmd_1;
+    float rudder_pedal_cmd_2;
+    float tiller_cmd_1;
+    float tiller_cmd_2;
     int gear_lever_up;
     int gear_reset;
     int fail_cu_ch1;
@@ -82,6 +87,7 @@ typedef struct
     int fail_servo_jam;
     int fail_hydraulic_leak;
     int fail_angle_sensor;
+    int pilot_priority;
 } Input_t;
 
 // Шина данных между CU и PHYS (ARINC429 слова)
@@ -92,6 +98,7 @@ typedef struct
     unsigned int valve_open;
     unsigned int centering_cmd;
     unsigned int active_channel;
+    unsigned char angle_ssm; // SSM для угла
 } Bus_t;
 
 // Выходные данные
@@ -116,8 +123,10 @@ typedef struct
 {
     float time;
     float speed;
-    float tiller;
-    float pedal;
+    float tiller1;
+    float tiller2;
+    float pedal1;
+    float pedal2;
     float hyd;
     int gear_up;
     int fails;
@@ -131,11 +140,14 @@ void nws_phys_step(Input_t* in, Bus_t* bus, Output_t* out);
 float nws_limit(float value, float min, float max);
 float nws_abs(float v);
 float nws_integrator(float input, float* state, float dt);
+float nws_interp(float x, float x1, float y1, float x2, float y2);
+void nws_delay(float input, float* buffer, int size, float* output);
+float nws_latch(float input, float trigger, float* state);
 
 unsigned int Arinc429_BuildWord(Arinc429Word_t word);
 
 // Функции ввода/вывода
 int read_scenario(const char* filename, ScenarioPoint_t* scenario, int max_points);
-void write_log(const char* filename, float time, Output_t* out);
+void write_log(const char* filename, float time, Output_t* out, Input_t* in);
 
 #endif

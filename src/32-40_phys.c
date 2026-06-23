@@ -1,3 +1,4 @@
+// 32-40_phys.c
 #include "32-40_defs.h"
 
 Arinc429Word_t Arinc429_ParseWord(unsigned int rawWord)
@@ -42,6 +43,14 @@ void nws_phys_step(
     float error;
     float cmd_rate;
     float rate = 0.0f;
+
+    if (in->gear_reset) 
+    {
+        wheel_angle = 0.0f;
+        integral = 0.0f;
+        servo_pos = 0.0f;
+        servo_vel = 0.0f;
+    }
     
     // Режим свободного касторинга ИЛИ клапан закрыт
     if (mode == STATE_FREE_CASTORING || valve_open == 0)
@@ -75,7 +84,8 @@ void nws_phys_step(
         float spool_cmd = P + I;
         spool_cmd = nws_limit(spool_cmd, -MAX_SERVO_CMD, MAX_SERVO_CMD);
         
-        // Отказ сервопривода (заклинивание клапана)
+        // ========== ОТКАЗ СЕРВОПРИВОДА (заклинивание) ==========
+        // Внешний сигнал от физики: заклинивание золотника
         if (in->fail_servo_jam)
         {
             spool_cmd = 0.0f;
@@ -90,7 +100,8 @@ void nws_phys_step(
         servo_pos += servo_vel * DT;
         servo_pos = nws_limit(servo_pos, -1.0f, 1.0f);
         
-        // Фактор давления гидравлики
+        // ========== ФАКТОР ДАВЛЕНИЯ ГИДРАВЛИКИ ==========
+        // Используем внешний сигнал от гидросистемы (из сценария)
         float pressure_factor = in->hyd_pressure / HYD_NOMINAL_PRESSURE;
         pressure_factor = nws_limit(pressure_factor, 0.0f, 1.0f);
         
@@ -102,21 +113,15 @@ void nws_phys_step(
             aero_factor = nws_limit(aero_factor, AERO_DEMPER_MAX_FACTOR, 1.0f);
         }
         
-        // Утечка гидравлики
+        // ========== УТЕЧКА ГИДРАВЛИКИ ==========
+        // Внешний сигнал от гидросистемы
         float leak_factor = 1.0f;
         if (in->fail_hydraulic_leak)
         {
             leak_factor = HYD_LEAK_FACTOR;
         }
-
-        if (in->gear_reset) {
-            wheel_angle = 0.0f;
-            integral = 0.0f;
-            servo_pos = 0.0f;
-            servo_vel = 0.0f;
-        }
         
-        // Скорость поворота колеса
+        // Скорость поворота колеса (учет всех внешних факторов)
         cmd_rate = servo_pos * MAX_WHEEL_RATE * pressure_factor * aero_factor * leak_factor;
         cmd_rate = nws_limit(cmd_rate, -MAX_WHEEL_RATE, MAX_WHEEL_RATE);
         
@@ -147,7 +152,11 @@ void nws_phys_step(
     out->steering_mode = mode;
     out->active_channel = active_channel;
     
-    // ARINC слово угла (датчик с учётом питания)
+    // Передаем SSM из шины в выходные данные
+    out->angle_word.ssm = bus->angle_ssm;
+    
+    // ========== ОТКАЗ ДАТЧИКА УГЛА ==========
+    // Внешний сигнал от датчика
     if (in->fail_angle_sensor || !in->sensor_power)
     {
         out->angle_word.data = INVALID_DATA;
@@ -157,11 +166,10 @@ void nws_phys_step(
     {
         Arinc429Word_t arinc_wheel_angle;
         arinc_wheel_angle.label = LABEL_WHEEL_ANGLE;
-        arinc_wheel_angle.sdi = 0;
-        arinc_wheel_angle.ssm = 0;
-        arinc_wheel_angle.data = (nws_abs(wheel_angle) * 100.0f);
+        arinc_wheel_angle.sdi = (wheel_angle < 0.0f) ? 1 : 0;
+        arinc_wheel_angle.ssm = out->angle_word.ssm;
+        arinc_wheel_angle.data = (int)(nws_abs(wheel_angle) * 100.0f);
         out->angle_word.data = Arinc429_BuildWord(arinc_wheel_angle);
-        out->angle_word.sdi = (wheel_angle < 0.0f) ? 1 : 0;
-        out->angle_word.ssm = SSM_NORMAL;
+        out->angle_word.sdi = arinc_wheel_angle.sdi;
     }
 }

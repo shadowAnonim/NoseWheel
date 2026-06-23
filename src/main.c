@@ -29,6 +29,7 @@ static void scenario_step(float time, Input_t* in)
         in->fail_servo_jam = 0;
         in->fail_hydraulic_leak = 0;
         in->fail_angle_sensor = 0;
+        in->pilot_priority = 0;
         initialized = 1;
     }
     
@@ -52,8 +53,11 @@ static void scenario_step(float time, Input_t* in)
     if (ratio > 1.0f) ratio = 1.0f;
     
     in->aircraft_speed = scenario[prev_idx].speed * (1.0f - ratio) + scenario[next_idx].speed * ratio;
-    in->tiller_cmd = scenario[prev_idx].tiller * (1.0f - ratio) + scenario[next_idx].tiller * ratio;
-    in->rudder_pedal_cmd = scenario[prev_idx].pedal * (1.0f - ratio) + scenario[next_idx].pedal * ratio;
+    in->tiller_cmd_1 = scenario[prev_idx].tiller1 * (1.0f - ratio) + scenario[next_idx].tiller1 * ratio;
+    in->tiller_cmd_2 = scenario[prev_idx].tiller2 * (1.0f - ratio) + scenario[next_idx].tiller2 * ratio;
+    in->rudder_pedal_cmd_1 = scenario[prev_idx].pedal1 * (1.0f - ratio) + scenario[next_idx].pedal1 * ratio;
+    in->rudder_pedal_cmd_2 = scenario[prev_idx].pedal2 * (1.0f - ratio) + scenario[next_idx].pedal2 * ratio;
+    // Давление гидравлики приходит как внешний сигнал от "гидросистемы"
     in->hyd_pressure = scenario[prev_idx].hyd * (1.0f - ratio) + scenario[next_idx].hyd * ratio;
     
     if (ratio > 0.5f)
@@ -78,31 +82,35 @@ int main(void)
     scenario_size = read_scenario("scenario.txt", scenario, MAX_SCENARIO_POINTS);
     if (scenario_size == 0)
     {
-        printf("Ошибка: не удалось загрузить сценарий\n");
+        printf("Error: cannot load scenery.\n");
         return 1;
     }
     
-    printf("Загружено %d точек сценария\n", scenario_size);
-    printf("TIME   MODE  ANGLE   RATE   RETRACT  CH  SSM  DATA\n");
+    printf("Loaded %d points of scenery.\n", scenario_size);
+    printf("Starting NWS Simulation...\n");
+    printf("============================================================\n");
+    printf("Scenario Parameters:\n");
+    printf(" - Simulation Time: %.1f seconds\n", SIM_TIME);
+    printf(" - Time Step (DT): %.3f seconds\n", DT);
+    printf(" - Number of Scenario Points: %d\n", scenario_size);
+    printf(" - First Point: Time=%.1f, Speed=%.1f, Hyd=%.0f\n",
+           scenario[0].time, scenario[0].speed, scenario[0].hyd);
+    printf(" - Last Point: Time=%.1f, Speed=%.1f, Hyd=%.0f\n",
+           scenario[scenario_size-1].time, scenario[scenario_size-1].speed,
+           scenario[scenario_size-1].hyd);
+    printf("============================================================\n");
+    printf("Logging to: %s\n\n", LOG_FILENAME);
     
     while (sim_time <= SIM_TIME)
     {
         scenario_step(sim_time, &in);
         nws_manager_step(&in, &out);
         
-        write_log(LOG_FILENAME, sim_time, &out);
-        
-        // Вывод в консоль (каждые 0.5 секунды)
-        if ((int)(sim_time * 50) % 25 == 0)
-        {
-            printf("%6.2f  %d   %7.2f %7.2f    %d      %d    %d   0x%08X\n",
-                sim_time, out.steering_mode, out.wheel_angle_deg, out.wheel_rate_deg_s,
-                out.gear_retract_enable, out.active_channel, out.angle_word.ssm, out.angle_word.data);
-        }
+        write_log(LOG_FILENAME, sim_time, &out, &in);
         
         sim_time += DT;
     }
     
-    printf("\nЛог сохранён в файл: %s\n", LOG_FILENAME);
+    printf("\nLog saved successful. Filename: %s\n", LOG_FILENAME);
     return 0;
 }
