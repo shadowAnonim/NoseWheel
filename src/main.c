@@ -86,31 +86,43 @@ int main(void)
     scenario_size = read_scenario("scenario.txt", scenario, MAX_SCENARIO_POINTS);
     if (scenario_size == 0)
     {
-        printf("Ошибка: не удалось загрузить сценарий\n");
+        printf("Error: cannot load scenery.\n");
         return 1;
     }
     
-    printf("Загружено %d точек сценария\n", scenario_size);
-    printf("TIME   MODE  ANGLE   RATE   RETRACT  CH  SSM  DATA\n");
+    printf("Loaded %d points of scenery.\n\n", scenario_size);
+    printf("TIME   MODE  ANGLE   RATE   RETRACT  CH  SSM  DATA(hex)   SPEED TILLER PEDAL HYD  GEAR\n");
+    printf("=====  ====  ======  ======  ======  ==  ===  ==========  ===== ===== ===== ==== ====\n");
     
     while (sim_time <= SIM_TIME)
     {
         scenario_step(sim_time, &in);
         nws_manager_step(&in, &out);
         
-        write_log(LOG_FILENAME, sim_time, &out);
+        write_log(LOG_FILENAME, sim_time, &out, &in);
         
         // Вывод в консоль (каждые 0.5 секунды)
         if ((int)(sim_time * 50) % 25 == 0)
         {
-            printf("%6.2f  %d   %7.2f %7.2f    %d      %d    %d   0x%08X\n",
-                sim_time, out.steering_mode, out.wheel_angle_deg, out.wheel_rate_deg_s,
-                out.gear_retract_enable, out.active_channel, out.angle_word.ssm, out.angle_word.data);
+            printf("%6.2f  %d   %7.2f %7.2f    %d      %d    %d   0x%08X  %5.1f  %5.2f  %5.2f  %5.0f  %d\n",
+                sim_time,
+                out.steering_mode,
+                out.wheel_angle_deg,
+                out.wheel_rate_deg_s,
+                out.gear_retract_enable,
+                out.active_channel,
+                out.angle_word.ssm,
+                out.angle_word.data,
+                in.aircraft_speed,
+                in.tiller_cmd,
+                in.rudder_pedal_cmd,
+                in.hyd_pressure,
+                in.gear_lever_up);
         }
         
         sim_time += DT;
     }
     
-    printf("\nЛог сохранён в файл: %s\n", LOG_FILENAME);
+    printf("\nLog saved successful. Filename: %s\n", LOG_FILENAME);
     return 0;
 }

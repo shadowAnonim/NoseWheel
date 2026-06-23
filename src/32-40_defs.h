@@ -1,8 +1,6 @@
 #ifndef nws_DEFS_H
 #define nws_DEFS_H
 
-#include <stdio.h>
-
 #define DT 0.02f
 
 // Режимы работы (State Machine)
@@ -130,11 +128,14 @@ void nws_phys_step(Input_t* in, Bus_t* bus, Output_t* out);
 float nws_limit(float value, float min, float max);
 float nws_abs(float v);
 float nws_integrator(float input, float* state, float dt);
+float nws_interp(float x, float x1, float y1, float x2, float y2);
+void nws_delay(float input, float* buffer, int size, float* output);
+float nws_latch(float input, float trigger, float* state);
 
 unsigned int Arinc429_BuildWord(Arinc429Word_t word);
 
 // Функции ввода/вывода
 int read_scenario(const char* filename, ScenarioPoint_t* scenario, int max_points);
-void write_log(const char* filename, float time, Output_t* out);
+void write_log(const char* filename, float time, Output_t* out, Input_t* in);
 
 #endif

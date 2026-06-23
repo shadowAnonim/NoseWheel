@@ -158,11 +158,11 @@ void nws_phys_step(
     {
         Arinc429Word_t arinc_wheel_angle;
         arinc_wheel_angle.label = LABEL_WHEEL_ANGLE;
-        arinc_wheel_angle.sdi = 0;
-        arinc_wheel_angle.ssm = 0;
-        arinc_wheel_angle.data = (nws_abs(wheel_angle) * 100.0f);
+        arinc_wheel_angle.sdi = (wheel_angle < 0.0f) ? 1 : 0;
+        arinc_wheel_angle.ssm = SSM_NORMAL;
+        arinc_wheel_angle.data = (int)(nws_abs(wheel_angle) * 100.0f);
         out->angle_word.data = Arinc429_BuildWord(arinc_wheel_angle);
-        out->angle_word.sdi = (wheel_angle < 0.0f) ? 1 : 0;
-        out->angle_word.ssm = SSM_NORMAL;
+        out->angle_word.sdi = arinc_wheel_angle.sdi;
+        out->angle_word.ssm = arinc_wheel_angle.ssm;
     }
 }
