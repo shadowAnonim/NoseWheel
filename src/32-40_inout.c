@@ -1,3 +1,4 @@
+// 32-40_inout.c
 #include <stdio.h>
 #include "32-40_defs.h"
 
@@ -44,13 +45,15 @@ int read_scenario(
             continue;
         }
         
-        if (sscanf(line, "%f %f %f %f %f %d",
+        if (sscanf(line, "%f %f %f %f %f %f %f %d",
             &scenario[count].time,
             &scenario[count].speed,
-            &scenario[count].tiller,
-            &scenario[count].pedal,
+            &scenario[count].tiller1,
+            &scenario[count].tiller2,
+            &scenario[count].pedal1,
+            &scenario[count].pedal2,
             &scenario[count].hyd,
-            &scenario[count].gear_up) == 6)
+            &scenario[count].gear_up) == 8)
         {
             count++;
         }
@@ -82,13 +85,13 @@ void write_log(
     
     if (!header_written)
     {
-        fprintf(file, "TIME   MODE  ANGLE   RATE   RETRACT  CH  SSM  DATA(hex)  SPEED TILLER PEDAL HYD GEAR\n");
+        fprintf(file, "TIME   MODE  ANGLE   RATE   RETRACT  CH  SSM  DATA(hex)  SPEED TILLER1 TILLER2 PEDAL1 PEDAL2 HYD GEAR\n");
         header_written = 1;
     }
     
     fprintf(
         file,
-        "%6.2f  %d   %7.2f %7.2f    %d      %d    %d   0x%08X  %5.1f  %5.2f  %5.2f  %5.0f  %d\n",
+        "%6.2f  %d   %7.2f %7.2f    %d      %d    %d   0x%08X  %5.1f  %5.2f  %5.2f  %5.2f  %5.2f  %5.0f  %d\n",
         time,
         out->steering_mode,
         out->wheel_angle_deg,
@@ -98,8 +101,10 @@ void write_log(
         out->angle_word.ssm,
         out->angle_word.data,
         in->aircraft_speed,
-        in->tiller_cmd,
-        in->rudder_pedal_cmd,
+        in->tiller_cmd_1,
+        in->tiller_cmd_2,
+        in->rudder_pedal_cmd_1,
+        in->rudder_pedal_cmd_2,
         in->hyd_pressure,
         in->gear_lever_up
     );

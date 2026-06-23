@@ -1,75 +1,151 @@
-# ============================================
-# Сценарий работы системы управления носовым колесом (NWS)
-# Формат: время скорость tiller педали давление gear_up
-# ============================================
-время скорость tiller педали давление gear_up
-# ========== ЭТАП 1: Стоянка (0-10 сек) ==========
-# Самолёт стоит на земле, скорость 0
-0 0 0.0 0.0 3000 0
-5 0 0.0 0.0 3000 0
-10 0 0.0 0.0 3000 0
+# ============================================================
+# NWS (Nose Wheel Steering) System Simulation Scenario
+# Test: Control Inputs Check & System Response
+# ============================================================
+# Format: time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+# ============================================================
+# This scenario tests the system's response to various pilot inputs
+# including tiller, pedals, and dual input conflicts.
+# ============================================================
 
-# ========== ЭТАП 2: Руление влево (15-35 сек) ==========
-# Начало руления, поворот штурвалом влево
-15 5 -0.3 0.0 3000 0
-20 10 -0.5 0.0 3000 0
-25 15 -0.6 0.0 3000 0
-30 15 -0.6 0.0 3000 0
-35 15 -0.6 0.0 3000 0
+# ========== PHASE 1: Initial State (0-5 sec) ==========
+# System powers up, all inputs neutral
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+0 0 0.0 0.0 0.0 0.0 3000 0
+5 0 0.0 0.0 0.0 0.0 3000 0
 
-# ========== ЭТАП 3: Возврат в нейтраль (40-42 сек) ==========
-# Возврат штурвала в нейтраль
-40 15 0.0 0.0 3000 0
-42 15 0.0 0.0 3000 0
+# ========== PHASE 2: Tiller Full Left (5-15 sec) ==========
+# Pilot 1 turns tiller to maximum left (-1.0)
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+5 10 -1.0 -1.0 0.0 0.0 3000 0
+10 10 -1.0 -1.0 0.0 0.0 3000 0
+15 10 -1.0 -1.0 0.0 0.0 3000 0
 
-# ========== ЭТАП 4: Руление вправо (45-65 сек) ==========
-# Поворот штурвалом вправо
-45 15 0.4 0.0 3000 0
-50 20 0.6 0.0 3000 0
-55 20 0.8 0.0 3000 0
-60 20 0.8 0.0 3000 0
-65 20 0.8 0.0 3000 0
+# ========== PHASE 3: Tiller Return to Neutral (15-20 sec) ==========
+# Return tiller to center position
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+15 10 0.0 0.0 0.0 0.0 3000 0
+20 10 0.0 0.0 0.0 0.0 3000 0
 
-# ========== ЭТАП 5: Разбег, переход на педали (70-80 сек) ==========
-# Самолёт разгоняется, управление переходит на педали
-70 40 0.0 0.1 3000 0
-72 60 0.0 0.2 3000 0
-74 80 0.0 0.4 3000 0
-76 100 0.0 0.5 3000 0
-78 120 0.0 0.6 3000 0
-80 140 0.0 0.6 3000 0
+# ========== PHASE 4: Tiller Full Right (20-30 sec) ==========
+# Pilot 1 turns tiller to maximum right (+1.0)
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+20 10 1.0 1.0 0.0 0.0 3000 0
+25 10 1.0 1.0 0.0 0.0 3000 0
+30 10 1.0 1.0 0.0 0.0 3000 0
 
-# ========== ЭТАП 6: Уборка шасси и центрирование (82-95 сек) ==========
-# Рычаг шасси вверх, команда центрирования колеса
-82 160 0.0 0.6 3000 1
-85 180 0.0 0.0 3000 1
-90 200 0.0 0.0 3000 1
-95 220 0.0 0.0 3000 1
+# ========== PHASE 5: Tiller Return to Neutral (30-35 sec) ==========
+# Return tiller to center position
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+30 10 0.0 0.0 0.0 0.0 3000 0
+35 10 0.0 0.0 0.0 0.0 3000 0
 
-# ========== ЭТАП 7: Отказ датчика угла (100-110 сек) ==========
-# Имитация отказа датчика угла поворота колеса
-100 240 0.0 0.0 3000 1
-105 250 0.0 0.0 3000 1
+# ========== PHASE 6: Pedals Full Left (35-45 sec) ==========
+# Pilot 1 pushes pedals to maximum left (-1.0)
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+35 10 0.0 0.0 -1.0 -1.0 3000 0
+40 10 0.0 0.0 -1.0 -1.0 3000 0
+45 10 0.0 0.0 -1.0 -1.0 3000 0
 
-# ========== ЭТАП 8: Отказ канала 1 контроллера (110-120 сек) ==========
-# Отказ первого канала, автоматическое переключение на канал 2
-110 260 0.0 0.0 3000 1
-115 270 0.0 0.0 3000 1
+# ========== PHASE 7: Pedals Return to Neutral (45-50 sec) ==========
+# Return pedals to center position
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+45 10 0.0 0.0 0.0 0.0 3000 0
+50 10 0.0 0.0 0.0 0.0 3000 0
 
-# ========== ЭТАП 9: Снижение и выпуск шасси (120-130 сек) ==========
-# Самолёт снижается, шасси выпущено, управление снова на педалях
-120 200 0.0 0.0 3000 0
-125 150 0.0 0.0 3000 0
-130 100 0.0 0.0 3000 0
+# ========== PHASE 8: Pedals Full Right (50-60 sec) ==========
+# Pilot 1 pushes pedals to maximum right (+1.0)
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+50 10 0.0 0.0 1.0 1.0 3000 0
+55 10 0.0 0.0 1.0 1.0 3000 0
+60 10 0.0 0.0 1.0 1.0 3000 0
 
-# ========== ЭТАП 10: Посадка и руление влево (135-150 сек) ==========
-# Касание, руление на стоянку, поворот влево
-135 50 -0.3 0.0 3000 0
-140 20 -0.5 0.0 3000 0
-145 10 -0.5 0.0 3000 0
-150 5 -0.3 0.0 3000 0
+# ========== PHASE 9: Pedals Return to Neutral (60-65 sec) ==========
+# Return pedals to center position
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+60 10 0.0 0.0 0.0 0.0 3000 0
+65 10 0.0 0.0 0.0 0.0 3000 0
 
-# ========== ЭТАП 11: Стоянка (155-160 сек) ==========
-# Полная остановка
-155 0 0.0 0.0 3000 0
-160 0 0.0 0.0 3000 0
+# ========== PHASE 10: Dual Input Conflict - Tiller vs Pedals (65-75 sec) ==========
+# Pilot 1 uses tiller left, Pilot 2 uses pedals right
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+65 10 -0.7 0.0 0.0 0.7 3000 0
+70 10 -0.7 0.0 0.0 0.7 3000 0
+75 10 -0.7 0.0 0.0 0.7 3000 0
+
+# ========== PHASE 11: Dual Input Conflict - Both Tiller (75-85 sec) ==========
+# Pilot 1 turns left, Pilot 2 turns right
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+75 10 -0.7 0.7 0.0 0.0 3000 0
+80 10 -0.7 0.7 0.0 0.0 3000 0
+85 10 -0.7 0.7 0.0 0.0 3000 0
+
+# ========== PHASE 12: Dual Input Conflict - Both Pedals (85-95 sec) ==========
+# Pilot 1 pushes left, Pilot 2 pushes right
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+85 10 0.0 0.0 -0.7 0.7 3000 0
+90 10 0.0 0.0 -0.7 0.7 3000 0
+95 10 0.0 0.0 -0.7 0.7 3000 0
+
+# ========== PHASE 13: Return to Neutral (95-100 sec) ==========
+# All inputs neutral after dual input tests
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+95 10 0.0 0.0 0.0 0.0 3000 0
+100 10 0.0 0.0 0.0 0.0 3000 0
+
+# ========== PHASE 14: Gear Lever Up (100-110 sec) ==========
+# Centering command should be activated
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+100 10 0.0 0.0 0.0 0.0 3000 1
+105 10 0.0 0.0 0.0 0.0 3000 1
+110 10 0.0 0.0 0.0 0.0 3000 1
+
+# ========== PHASE 15: Gear Lever Down (110-115 sec) ==========
+# Gear lever returned to down position
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+110 10 0.0 0.0 0.0 0.0 3000 0
+115 10 0.0 0.0 0.0 0.0 3000 0
+
+# ========== PHASE 16: High Speed - Tiller Input Ignored (115-125 sec) ==========
+# Speed exceeds threshold, should use pedals even with tiller input
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+115 60 0.5 0.5 0.0 0.0 3000 0
+120 60 0.5 0.5 0.0 0.0 3000 0
+125 60 0.5 0.5 0.0 0.0 3000 0
+
+# ========== PHASE 17: High Speed - Pedals Active (125-135 sec) ==========
+# Pedals control at high speed
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+125 60 0.0 0.0 0.6 0.6 3000 0
+130 60 0.0 0.0 0.6 0.6 3000 0
+135 60 0.0 0.0 0.6 0.6 3000 0
+
+# ========== PHASE 18: Return to Neutral (135-140 sec) ==========
+# All inputs neutral after high speed tests
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+135 60 0.0 0.0 0.0 0.0 3000 0
+140 60 0.0 0.0 0.0 0.0 3000 0
+
+# ========== PHASE 19: Hydraulic Pressure Drop (140-150 sec) ==========
+# Pressure drops below minimum, system should enter FREE_CASTORING
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+140 10 0.5 0.5 0.0 0.0 3000 0
+143 10 0.5 0.5 0.0 0.0 2500 0
+145 10 0.5 0.5 0.0 0.0 2000 0
+147 10 0.5 0.5 0.0 0.0 1800 0
+149 10 0.5 0.5 0.0 0.0 1500 0
+150 10 0.5 0.5 0.0 0.0 1500 0
+
+# ========== PHASE 20: Hydraulic Pressure Recovery (150-155 sec) ==========
+# Pressure restored to normal
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+150 10 0.5 0.5 0.0 0.0 2000 0
+152 10 0.5 0.5 0.0 0.0 2500 0
+154 10 0.5 0.5 0.0 0.0 2800 0
+155 10 0.5 0.5 0.0 0.0 3000 0
+
+# ========== PHASE 21: Final Neutral (155-160 sec) ==========
+# End of test, all inputs neutral
+# time speed tiller1 tiller2 pedal1 pedal2 pressure gear_up
+155 10 0.0 0.0 0.0 0.0 3000 0
+160 10 0.0 0.0 0.0 0.0 3000 0

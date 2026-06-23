@@ -22,6 +22,7 @@
 // ARINC429
 #define SSM_NORMAL 0
 #define SSM_NO_COMPUTED_DATA 3
+#define SSM_DUAL_INPUT_ERROR 2
 #define INVALID_DATA 0xFFFFFFFFu
 
 // Метки ARINC429
@@ -56,6 +57,10 @@
 // Логирование
 #define LOG_FILENAME "nws_sim.log"
 
+// Параметры Dual Input
+#define DUAL_INPUT_THRESHOLD 0.1f
+#define DUAL_INPUT_LOCK_TIME 10.0f
+
 typedef struct
 {
     char label;
@@ -71,8 +76,10 @@ typedef struct
     int sensor_power;
     float hyd_pressure;
     float aircraft_speed;
-    float rudder_pedal_cmd;
-    float tiller_cmd;
+    float rudder_pedal_cmd_1;
+    float rudder_pedal_cmd_2;
+    float tiller_cmd_1;
+    float tiller_cmd_2;
     int gear_lever_up;
     int gear_reset;
     int fail_cu_ch1;
@@ -80,6 +87,7 @@ typedef struct
     int fail_servo_jam;
     int fail_hydraulic_leak;
     int fail_angle_sensor;
+    int pilot_priority;
 } Input_t;
 
 // Шина данных между CU и PHYS (ARINC429 слова)
@@ -90,6 +98,7 @@ typedef struct
     unsigned int valve_open;
     unsigned int centering_cmd;
     unsigned int active_channel;
+    unsigned char angle_ssm; // SSM для угла
 } Bus_t;
 
 // Выходные данные
@@ -114,8 +123,10 @@ typedef struct
 {
     float time;
     float speed;
-    float tiller;
-    float pedal;
+    float tiller1;
+    float tiller2;
+    float pedal1;
+    float pedal2;
     float hyd;
     int gear_up;
 } ScenarioPoint_t;
